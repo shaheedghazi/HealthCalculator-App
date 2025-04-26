@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -47,21 +48,19 @@ export function BmiCalculator({ onCalculate }: BmiCalculatorProps) {
     let height = data.height;
     let weight = data.weight;
 
+    // Convert to metric (meters and kg) for calculation
     if (data.unit === 'imperial') {
-      // Convert inches to meters
-      height = height * 0.0254;
-      // Convert pounds to kilograms
-      weight = weight * 0.453592;
+      height = height * 0.0254; // inches to meters
+      weight = weight * 0.453592; // lbs to kg
     } else {
-       // Convert cm to meters if unit is metric
-       height = height / 100;
+       height = height / 100; // cm to meters
     }
 
     if (height > 0 && weight > 0) {
       const bmi = weight / (height * height);
       const roundedBmi = Math.round(bmi * 10) / 10; // Round to one decimal place
       setResult(roundedBmi);
-      onCalculate(roundedBmi, data); // Pass the original form data
+      onCalculate(roundedBmi, data); // Pass the original form data (with original units)
     }
   };
 
@@ -69,7 +68,7 @@ export function BmiCalculator({ onCalculate }: BmiCalculatorProps) {
   const handleUnitChange = (value: 'metric' | 'imperial') => {
     setUnit(value);
     form.setValue('unit', value);
-    // Reset form fields when unit changes to avoid confusion
+    // Reset form fields when unit changes
     form.reset({ height: undefined, weight: undefined, unit: value });
     setResult(null);
   };
@@ -118,7 +117,7 @@ export function BmiCalculator({ onCalculate }: BmiCalculatorProps) {
                 <FormItem>
                   <FormLabel>Height ({unit === 'metric' ? 'cm' : 'inches'})</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder={`Enter height in ${unit === 'metric' ? 'cm' : 'inches'}`} {...field} />
+                    <Input type="number" step="any" placeholder={`Enter height`} {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -132,7 +131,7 @@ export function BmiCalculator({ onCalculate }: BmiCalculatorProps) {
                 <FormItem>
                   <FormLabel>Weight ({unit === 'metric' ? 'kg' : 'lbs'})</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder={`Enter weight in ${unit === 'metric' ? 'kg' : 'lbs'}`} {...field} />
+                    <Input type="number" step="any" placeholder={`Enter weight`} {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -163,3 +162,6 @@ function getBmiCategory(bmi: number): string {
   if (bmi >= 25 && bmi < 30) return "Overweight";
   return "Obese";
 }
+
+
+    

@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -34,9 +35,11 @@ export function HeartRateCalculator({ onCalculate }: HeartRateCalculatorProps) {
   });
 
    const onSubmit = (data: HeartRateFormData) => {
+    // Use the simpler 220 - age formula for Max Heart Rate
     const maxHeartRate = 220 - data.age;
-    const lowerBound = Math.round(maxHeartRate * 0.50); // 50% intensity
-    const upperBound = Math.round(maxHeartRate * 0.85); // 85% intensity
+    // Standard target zone: 50% to 85% of MHR
+    const lowerBound = Math.round(maxHeartRate * 0.50);
+    const upperBound = Math.round(maxHeartRate * 0.85);
     const calculatedResult = { lower: lowerBound, upper: upperBound };
     setResult(calculatedResult);
     onCalculate(calculatedResult, data);
@@ -56,9 +59,14 @@ export function HeartRateCalculator({ onCalculate }: HeartRateCalculatorProps) {
               name="age"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Age</FormLabel>
+                  <FormLabel>Age (years)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="Enter your age" {...field} />
+                    <Input
+                      type="number"
+                      placeholder="Enter your age"
+                      {...field}
+                      onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} // Handle empty input
+                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -73,15 +81,15 @@ export function HeartRateCalculator({ onCalculate }: HeartRateCalculatorProps) {
 
         {result !== null && (
           <div className="mt-6 p-4 bg-secondary rounded-md text-center shadow-inner">
-            <Label className="text-sm font-medium text-secondary-foreground">Target Heart Rate Zone (50-85%):</Label>
+            <Label className="text-sm font-medium text-secondary-foreground">Target Heart Rate Zone (50-85% Intensity):</Label>
             <p className="text-3xl font-bold text-primary">
               {result.lower} - {result.upper} bpm
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               (bpm = beats per minute)
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Consult a doctor before starting any exercise program.
+            <p className="text-xs text-muted-foreground mt-2">
+              This is a general estimate. Consult a healthcare professional before starting or modifying an exercise program.
             </p>
           </div>
         )}
@@ -89,3 +97,5 @@ export function HeartRateCalculator({ onCalculate }: HeartRateCalculatorProps) {
     </Card>
   );
 }
+
+    

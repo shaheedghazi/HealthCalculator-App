@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -19,31 +20,14 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// Using an inline SVG for the food icon as lucide doesn't have a direct 'Food' icon
-const FoodIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" stroke="none" fill="hsl(var(--muted-foreground))"/> {/* Heart as placeholder */}
-    <path d="M17 2H7C5.89543 2 5 2.89543 5 4V20C5 21.1046 5.89543 22 7 22H17C18.1046 22 19 21.1046 19 20V4C19 2.89543 18.1046 2 17 2Z" />
-    <path d="M12 18H12.01" />
-    <path d="M12 14H12.01" />
-     <path d="M12 10H12.01" />
-     <path d="M12 6H12.01" />
-     <path d="M16 6H16.01" />
-     <path d="M8 6H8.01" />
-     <path d="M16 10H16.01" />
-     <path d="M8 10H8.01" />
-     <path d="M16 14H16.01" />
-     <path d="M8 14H8.01" />
-     <path d="M16 18H16.01" />
-     <path d="M8 18H8.01" />
-  </svg>
-);
+import { Flame } from "lucide-react"; // Using Flame icon for calories
 
 interface CalorieCalculatorProps {
   onCalculate: (result: number, data: CalorieFormData) => void;
@@ -104,7 +88,7 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
     form.setValue('unit', value);
     // Reset relevant fields on unit change
     form.reset({
-      ...form.getValues(), // Keep other values
+      ...form.getValues(), // Keep other values like age, gender, activity
       height: undefined,
       weight: undefined,
       unit: value
@@ -115,8 +99,8 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
   return (
     <Card className="w-full max-w-md shadow-lg rounded-lg">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg font-semibold">Daily Calorie Intake</CardTitle>
-        <FoodIcon />
+        <CardTitle className="text-lg font-semibold">Daily Calorie Needs</CardTitle>
+        <Flame className="h-5 w-5 text-muted-foreground" />
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -154,9 +138,9 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
               name="age"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Age</FormLabel>
+                  <FormLabel>Age (years)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="Enter your age" {...field} />
+                    <Input type="number" placeholder="Enter your age" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -173,19 +157,19 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        className="flex flex-col space-y-1"
+                        className="flex items-center space-x-4" // Display horizontally
                       >
-                        <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormItem className="flex items-center space-x-2 space-y-0">
                           <FormControl>
-                            <RadioGroupItem value="male" />
+                            <RadioGroupItem value="male" id="male-calorie"/>
                           </FormControl>
-                          <FormLabel className="font-normal">Male</FormLabel>
+                          <FormLabel htmlFor="male-calorie" className="font-normal">Male</FormLabel>
                         </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormItem className="flex items-center space-x-2 space-y-0">
                           <FormControl>
-                            <RadioGroupItem value="female" />
+                            <RadioGroupItem value="female" id="female-calorie"/>
                           </FormControl>
-                          <FormLabel className="font-normal">Female</FormLabel>
+                          <FormLabel htmlFor="female-calorie" className="font-normal">Female</FormLabel>
                         </FormItem>
                       </RadioGroup>
                     </FormControl>
@@ -201,7 +185,7 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
                   <FormItem>
                     <FormLabel>Height ({unit === 'metric' ? 'cm' : 'inches'})</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder={`Enter height in ${unit === 'metric' ? 'cm' : 'inches'}`} {...field} />
+                      <Input type="number" step="any" placeholder={`Enter height`} {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -215,7 +199,7 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
                   <FormItem>
                     <FormLabel>Weight ({unit === 'metric' ? 'kg' : 'lbs'})</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder={`Enter weight in ${unit === 'metric' ? 'kg' : 'lbs'}`} {...field} />
+                      <Input type="number" step="any" placeholder={`Enter weight`} {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -227,7 +211,7 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
               name="activityLevel"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Activity Level</FormLabel>
+                  <FormLabel>Daily Activity Level</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -257,10 +241,13 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
           <div className="mt-6 p-4 bg-secondary rounded-md text-center shadow-inner">
             <Label className="text-sm font-medium text-secondary-foreground">Estimated Daily Calorie Needs:</Label>
             <p className="text-3xl font-bold text-primary">{result} kcal</p>
-             <p className="text-xs text-muted-foreground mt-1">This is an estimate for maintaining your current weight.</p>
+            <p className="text-xs text-muted-foreground mt-1">This is an estimate for maintaining your current weight.</p>
           </div>
         )}
       </CardContent>
     </Card>
   );
 }
+
+
+    

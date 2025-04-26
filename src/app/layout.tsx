@@ -1,21 +1,13 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
 
 export const metadata: Metadata = {
-  title: 'HealthCalc Hub - Your Health Calculator',
-  description: 'Calculate BMI, Calorie Intake, Target Heart Rate, and get personalized health tips.',
+  title: 'HealthCalc Hub - Your Comprehensive Health Toolkit',
+  description: 'Calculate BMI, Calories, Heart Rate, Body Fat, Ideal Weight, WHR, Water Intake, and get personalized AI health tips.',
 };
 
 export default function RootLayout({
@@ -25,7 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}>
         {children}
         <Toaster />
       </body>
