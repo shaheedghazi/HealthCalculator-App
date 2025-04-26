@@ -39,11 +39,11 @@ export function BodyFatCalculator({ onCalculate }: BodyFatCalculatorProps) {
   const form = useForm<BodyFatFormData>({
     resolver: zodResolver(bodyFatSchema),
     defaultValues: {
-      gender: undefined,
-      height: undefined,
-      neck: undefined,
-      waist: undefined,
-      hip: undefined,
+      gender: undefined, // Keep radio group undefined
+      height: '', // Initialize with empty string
+      neck: '', // Initialize with empty string
+      waist: '', // Initialize with empty string
+      hip: '', // Initialize with empty string (handled by validation)
       unit: 'metric',
     },
     mode: 'onChange', // Validate on change to show hip requirement dynamically
@@ -52,7 +52,13 @@ export function BodyFatCalculator({ onCalculate }: BodyFatCalculatorProps) {
   const selectedGender = form.watch('gender');
 
   const onSubmit = (data: BodyFatFormData) => {
-    let { height, neck, waist, hip, gender } = data;
+    // Zod ensures values are numbers if validation passes
+    let height = data.height as number;
+    let neck = data.neck as number;
+    let waist = data.waist as number;
+    let hip = data.hip as number | undefined; // Hip might be undefined if male
+    const gender = data.gender!; // Gender is required by schema
+
     let bodyFat: number;
 
     // Convert measurements to inches if imperial
@@ -75,8 +81,8 @@ export function BodyFatCalculator({ onCalculate }: BodyFatCalculatorProps) {
         bodyFat = 86.010 * Math.log10(waistIn - neckIn) - 70.041 * Math.log10(heightIn) + 36.76;
     } else { // female
         if (!hipIn) {
-            // This should ideally be caught by validation, but as a fallback:
-            form.setError("hip", { type: "manual", message: "Hip measurement required for females." });
+            // This case should be prevented by Zod validation refine
+            console.error("Hip measurement missing for female calculation despite validation.");
             return;
         }
         bodyFat = 163.205 * Math.log10(waistIn + hipIn - neckIn) - 97.684 * Math.log10(heightIn) - 78.387;
@@ -98,14 +104,23 @@ export function BodyFatCalculator({ onCalculate }: BodyFatCalculatorProps) {
     // Reset measurement fields
     form.reset({
         ...form.getValues(), // Keep gender
-        height: undefined,
-        neck: undefined,
-        waist: undefined,
-        hip: undefined,
+        height: '',
+        neck: '',
+        waist: '',
+        hip: '',
         unit: value
     });
     setResult(null);
   };
+
+  // Clear hip value and validation if gender changes to male
+  React.useEffect(() => {
+    if (selectedGender === 'male') {
+      form.setValue('hip', ''); // Clear the value
+      form.clearErrors('hip'); // Clear potential validation errors
+    }
+  }, [selectedGender, form]);
+
 
   return (
     <Card className="w-full max-w-md shadow-lg rounded-lg">
@@ -152,14 +167,8 @@ export function BodyFatCalculator({ onCalculate }: BodyFatCalculatorProps) {
                   <FormLabel>Gender</FormLabel>
                   <FormControl>
                     <RadioGroup
-                      onValueChange={(value) => {
-                         field.onChange(value);
-                         // Clear hip value if switching to male
-                         if (value === 'male') {
-                            form.setValue('hip', undefined);
-                         }
-                       }}
-                      defaultValue={field.value}
+                      onValueChange={field.onChange}
+                      value={field.value} // Control the value
                       className="flex flex-col space-y-1"
                     >
                       <FormItem className="flex items-center space-x-3 space-y-0">
@@ -188,7 +197,7 @@ export function BodyFatCalculator({ onCalculate }: BodyFatCalculatorProps) {
                 <FormItem>
                   <FormLabel>Height ({unit === 'metric' ? 'cm' : 'in'})</FormLabel>
                   <FormControl>
-                    <Input type="number" step="any" placeholder={`Enter height`} {...field} />
+                    <Input type="number" step="any" placeholder={`Enter height`} {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.value)} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -202,7 +211,7 @@ export function BodyFatCalculator({ onCalculate }: BodyFatCalculatorProps) {
                 <FormItem>
                   <FormLabel>Neck Circumference ({unit === 'metric' ? 'cm' : 'in'})</FormLabel>
                   <FormControl>
-                    <Input type="number" step="any" placeholder={`Enter neck circumference`} {...field} />
+                    <Input type="number" step="any" placeholder={`Enter neck circumference`} {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.value)}/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -216,7 +225,7 @@ export function BodyFatCalculator({ onCalculate }: BodyFatCalculatorProps) {
                 <FormItem>
                   <FormLabel>Waist Circumference ({unit === 'metric' ? 'cm' : 'in'})</FormLabel>
                   <FormControl>
-                    <Input type="number" step="any" placeholder={`Enter waist circumference`} {...field} />
+                    <Input type="number" step="any" placeholder={`Enter waist circumference`} {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.value)}/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -232,7 +241,7 @@ export function BodyFatCalculator({ onCalculate }: BodyFatCalculatorProps) {
                   <FormItem>
                     <FormLabel>Hip Circumference ({unit === 'metric' ? 'cm' : 'in'})</FormLabel>
                     <FormControl>
-                      <Input type="number" step="any" placeholder={`Enter hip circumference`} {...field} />
+                      <Input type="number" step="any" placeholder={`Enter hip circumference`} {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.value)}/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -278,5 +287,3 @@ function getBodyFatCategory(bfPercentage: number, gender: 'male' | 'female'): st
   }
   return "Unknown"; // Should not happen
 }
-
-    

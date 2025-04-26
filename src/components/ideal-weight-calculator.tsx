@@ -39,15 +39,15 @@ export function IdealWeightCalculator({ onCalculate }: IdealWeightCalculatorProp
   const form = useForm<IdealWeightFormData>({
     resolver: zodResolver(idealWeightSchema),
     defaultValues: {
-      gender: undefined,
-      height: undefined,
+      gender: undefined, // Keep radio group undefined
+      height: '', // Initialize with empty string
       unit: 'metric',
     },
   });
 
   const onSubmit = (data: IdealWeightFormData) => {
-    let height = data.height;
-    const gender = data.gender;
+    let height = data.height as number; // Zod ensures number if valid
+    const gender = data.gender!; // Gender is required by schema
     const currentUnit = data.unit;
 
     // Convert height to inches for the formula
@@ -108,7 +108,7 @@ export function IdealWeightCalculator({ onCalculate }: IdealWeightCalculatorProp
     // Reset height field
     form.reset({
       ...form.getValues(), // Keep gender
-      height: undefined,
+      height: '',
       unit: value
     });
     setResult(null);
@@ -160,7 +160,7 @@ export function IdealWeightCalculator({ onCalculate }: IdealWeightCalculatorProp
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value} // Control the value
                       className="flex flex-col space-y-1"
                     >
                       <FormItem className="flex items-center space-x-3 space-y-0">
@@ -189,7 +189,7 @@ export function IdealWeightCalculator({ onCalculate }: IdealWeightCalculatorProp
                 <FormItem>
                   <FormLabel>Height ({unit === 'metric' ? 'cm' : 'in'})</FormLabel>
                   <FormControl>
-                    <Input type="number" step="any" placeholder={`Enter height`} {...field} />
+                    <Input type="number" step="any" placeholder={`Enter height`} {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.value)} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -215,5 +215,3 @@ export function IdealWeightCalculator({ onCalculate }: IdealWeightCalculatorProp
     </Card>
   );
 }
-
-    

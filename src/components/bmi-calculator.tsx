@@ -38,15 +38,17 @@ export function BmiCalculator({ onCalculate }: BmiCalculatorProps) {
   const form = useForm<BmiFormData>({
     resolver: zodResolver(bmiSchema),
     defaultValues: {
-      height: undefined,
-      weight: undefined,
+      height: '', // Initialize with empty string
+      weight: '', // Initialize with empty string
       unit: 'metric',
     },
   });
 
    const onSubmit = (data: BmiFormData) => {
-    let height = data.height;
-    let weight = data.weight;
+    // Zod already coerced empty strings to undefined or numbers during validation
+    // If validation passed, height and weight are numbers here.
+    let height = data.height as number;
+    let weight = data.weight as number;
 
     // Convert to metric (meters and kg) for calculation
     if (data.unit === 'imperial') {
@@ -69,7 +71,7 @@ export function BmiCalculator({ onCalculate }: BmiCalculatorProps) {
     setUnit(value);
     form.setValue('unit', value);
     // Reset form fields when unit changes
-    form.reset({ height: undefined, weight: undefined, unit: value });
+    form.reset({ height: '', weight: '', unit: value });
     setResult(null);
   };
 
@@ -117,7 +119,8 @@ export function BmiCalculator({ onCalculate }: BmiCalculatorProps) {
                 <FormItem>
                   <FormLabel>Height ({unit === 'metric' ? 'cm' : 'inches'})</FormLabel>
                   <FormControl>
-                    <Input type="number" step="any" placeholder={`Enter height`} {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} />
+                    {/* Pass field.value directly; it will be '' initially */}
+                    <Input type="number" step="any" placeholder={`Enter height`} {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.value)} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -131,7 +134,8 @@ export function BmiCalculator({ onCalculate }: BmiCalculatorProps) {
                 <FormItem>
                   <FormLabel>Weight ({unit === 'metric' ? 'kg' : 'lbs'})</FormLabel>
                   <FormControl>
-                    <Input type="number" step="any" placeholder={`Enter weight`} {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} />
+                     {/* Pass field.value directly; it will be '' initially */}
+                    <Input type="number" step="any" placeholder={`Enter weight`} {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.value)} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -163,5 +167,3 @@ function getBmiCategory(bmi: number): string {
   return "Obese";
 }
 
-
-    

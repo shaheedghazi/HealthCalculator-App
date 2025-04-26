@@ -30,13 +30,14 @@ export function HeartRateCalculator({ onCalculate }: HeartRateCalculatorProps) {
   const form = useForm<HeartRateFormData>({
     resolver: zodResolver(heartRateSchema),
     defaultValues: {
-      age: undefined,
+      age: '', // Initialize with empty string
     },
   });
 
    const onSubmit = (data: HeartRateFormData) => {
+    const age = data.age as number; // Zod ensures it's a number if validation passes
     // Use the simpler 220 - age formula for Max Heart Rate
-    const maxHeartRate = 220 - data.age;
+    const maxHeartRate = 220 - age;
     // Standard target zone: 50% to 85% of MHR
     const lowerBound = Math.round(maxHeartRate * 0.50);
     const upperBound = Math.round(maxHeartRate * 0.85);
@@ -65,7 +66,7 @@ export function HeartRateCalculator({ onCalculate }: HeartRateCalculatorProps) {
                       type="number"
                       placeholder="Enter your age"
                       {...field}
-                      onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} // Handle empty input
+                      onChange={e => field.onChange(e.target.value === '' ? '' : e.target.value)} // Handle empty input
                      />
                   </FormControl>
                   <FormMessage />
@@ -97,5 +98,3 @@ export function HeartRateCalculator({ onCalculate }: HeartRateCalculatorProps) {
     </Card>
   );
 }
-
-    

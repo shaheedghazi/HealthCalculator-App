@@ -24,6 +24,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Ruler } from "lucide-react"; // Using Ruler icon
@@ -39,26 +40,28 @@ export function WhrCalculator({ onCalculate }: WhrCalculatorProps) {
   const form = useForm<WhrFormData>({
     resolver: zodResolver(whrSchema),
     defaultValues: {
-      waist: undefined,
-      hip: undefined,
-      gender: undefined, // Optional for calculation, used for risk assessment
+      waist: '', // Initialize with empty string
+      hip: '', // Initialize with empty string
+      gender: undefined, // Keep radio group undefined
       unit: 'metric',
     },
   });
 
   const onSubmit = (data: WhrFormData) => {
-    const { waist, hip, gender } = data;
+    const waist = data.waist as number; // Zod ensures number if valid
+    const hip = data.hip as number; // Zod ensures number if valid
+    const gender = data.gender; // Can be 'male', 'female', or undefined
 
     // Ensure units are consistent (calculation works regardless of cm or inches as long as they match)
     if (waist > 0 && hip > 0) {
       const ratio = waist / hip;
       const roundedRatio = Math.round(ratio * 100) / 100; // Round to two decimal places
 
-      let risk = "N/A";
+      let risk: string;
       if (gender) {
           risk = getWhrRiskCategory(roundedRatio, gender);
       } else {
-          risk = "Gender not specified for risk assessment";
+          risk = "Risk category requires gender selection";
       }
 
       const calculatedResult = { ratio: roundedRatio, risk };
@@ -73,8 +76,8 @@ export function WhrCalculator({ onCalculate }: WhrCalculatorProps) {
     // Reset measurement fields
     form.reset({
         ...form.getValues(), // Keep gender
-        waist: undefined,
-        hip: undefined,
+        waist: '',
+        hip: '',
         unit: value
     });
     setResult(null);
@@ -124,7 +127,7 @@ export function WhrCalculator({ onCalculate }: WhrCalculatorProps) {
                 <FormItem>
                   <FormLabel>Waist Circumference ({unit === 'metric' ? 'cm' : 'in'})</FormLabel>
                   <FormControl>
-                    <Input type="number" step="any" placeholder={`Enter waist circumference`} {...field} />
+                    <Input type="number" step="any" placeholder={`Enter waist circumference`} {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.value)} />
                   </FormControl>
                    <FormDescription className="text-xs">Measure at the narrowest point, usually just above the navel.</FormDescription>
                   <FormMessage />
@@ -139,7 +142,7 @@ export function WhrCalculator({ onCalculate }: WhrCalculatorProps) {
                 <FormItem>
                   <FormLabel>Hip Circumference ({unit === 'metric' ? 'cm' : 'in'})</FormLabel>
                   <FormControl>
-                    <Input type="number" step="any" placeholder={`Enter hip circumference`} {...field} />
+                    <Input type="number" step="any" placeholder={`Enter hip circumference`} {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.value)} />
                   </FormControl>
                    <FormDescription className="text-xs">Measure at the widest part of your hips/buttocks.</FormDescription>
                   <FormMessage />
@@ -155,27 +158,28 @@ export function WhrCalculator({ onCalculate }: WhrCalculatorProps) {
                   <FormLabel>Gender (for Risk Assessment)</FormLabel>
                   <FormControl>
                     <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      // Handle onChange to set undefined correctly
+                       onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)}
+                      value={field.value ?? 'none'} // Use 'none' or another unique value for undefined
                       className="flex flex-col space-y-1"
                     >
                       <FormItem className="flex items-center space-x-3 space-y-0">
                         <FormControl>
-                          <RadioGroupItem value="male" />
+                          <RadioGroupItem value="male" id="gender-male-whr"/>
                         </FormControl>
-                        <FormLabel className="font-normal">Male</FormLabel>
+                        <FormLabel htmlFor="gender-male-whr" className="font-normal">Male</FormLabel>
                       </FormItem>
                       <FormItem className="flex items-center space-x-3 space-y-0">
                         <FormControl>
-                          <RadioGroupItem value="female" />
+                          <RadioGroupItem value="female" id="gender-female-whr" />
                         </FormControl>
-                        <FormLabel className="font-normal">Female</FormLabel>
+                        <FormLabel htmlFor="gender-female-whr" className="font-normal">Female</FormLabel>
                       </FormItem>
                        <FormItem className="flex items-center space-x-3 space-y-0">
                            <FormControl>
-                             <RadioGroupItem value={undefined} id="gender-none" />
+                             <RadioGroupItem value="none" id="gender-none-whr" />
                            </FormControl>
-                          <FormLabel htmlFor="gender-none" className="font-normal">Prefer not to say</FormLabel>
+                          <FormLabel htmlFor="gender-none-whr" className="font-normal">Prefer not to say</FormLabel>
                        </FormItem>
                     </RadioGroup>
                   </FormControl>
@@ -197,7 +201,12 @@ export function WhrCalculator({ onCalculate }: WhrCalculatorProps) {
             <Label className="text-sm font-medium text-secondary-foreground">Waist-to-Hip Ratio:</Label>
             <p className="text-3xl font-bold text-primary">{result.ratio.toFixed(2)}</p>
             <Label className="text-sm font-medium text-secondary-foreground mt-2 block">Health Risk Assessment:</Label>
-            <p className={`text-sm font-semibold mt-1 ${result.risk === 'Low Risk' ? 'text-green-600' : result.risk === 'Moderate Risk' ? 'text-yellow-600' : result.risk === 'High Risk' ? 'text-red-600' : 'text-muted-foreground'}`}>
+            <p className={`text-sm font-semibold mt-1 ${
+                result.risk === 'Low Risk' ? 'text-green-600' :
+                result.risk === 'Moderate Risk' ? 'text-yellow-600' : // Use Tailwind classes for colors
+                result.risk === 'High Risk' ? 'text-red-600' : // Use Tailwind classes for colors
+                'text-muted-foreground' // Default color
+             }`}>
                 {result.risk}
             </p>
              <p className="text-xs text-muted-foreground mt-2">WHR is an indicator of fat distribution and potential health risks.</p>
@@ -221,5 +230,3 @@ function getWhrRiskCategory(whr: number, gender: 'male' | 'female'): string {
   }
   return "Unable to assess"; // Should not happen with valid inputs
 }
-
-    

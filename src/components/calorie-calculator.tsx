@@ -48,18 +48,20 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
   const form = useForm<CalorieFormData>({
     resolver: zodResolver(calorieSchema),
     defaultValues: {
-      age: undefined,
-      gender: undefined,
-      height: undefined,
-      weight: undefined,
-      activityLevel: undefined,
+      age: '', // Initialize with empty string
+      gender: undefined, // Keep as undefined for radio group
+      height: '', // Initialize with empty string
+      weight: '', // Initialize with empty string
+      activityLevel: undefined, // Keep as undefined for select
       unit: 'metric',
     },
   });
 
  const onSubmit = (data: CalorieFormData) => {
-    let height = data.height;
-    let weight = data.weight;
+    // Zod already coerced empty strings to undefined or numbers during validation
+    let height = data.height as number;
+    let weight = data.weight as number;
+    let age = data.age as number;
 
     // Convert units if imperial
     if (data.unit === 'imperial') {
@@ -71,13 +73,13 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
 
     // Calculate BMR using Harris-Benedict equation (revised)
     if (data.gender === 'male') {
-      bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * data.age);
+      bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
     } else { // female
-      bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * data.age);
+      bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
     }
 
     // Calculate TDEE (Total Daily Energy Expenditure)
-    const tdee = bmr * activityLevelMultipliers[data.activityLevel];
+    const tdee = bmr * activityLevelMultipliers[data.activityLevel!]; // Use non-null assertion as it's required by schema
     const roundedTdee = Math.round(tdee);
     setResult(roundedTdee);
     onCalculate(roundedTdee, data); // Pass original form data
@@ -89,8 +91,8 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
     // Reset relevant fields on unit change
     form.reset({
       ...form.getValues(), // Keep other values like age, gender, activity
-      height: undefined,
-      weight: undefined,
+      height: '',
+      weight: '',
       unit: value
     });
     setResult(null);
@@ -140,7 +142,7 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
                 <FormItem>
                   <FormLabel>Age (years)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="Enter your age" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} />
+                    <Input type="number" placeholder="Enter your age" {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.value)} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -156,7 +158,7 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value} // Control the value
                         className="flex items-center space-x-4" // Display horizontally
                       >
                         <FormItem className="flex items-center space-x-2 space-y-0">
@@ -185,7 +187,7 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
                   <FormItem>
                     <FormLabel>Height ({unit === 'metric' ? 'cm' : 'inches'})</FormLabel>
                     <FormControl>
-                      <Input type="number" step="any" placeholder={`Enter height`} {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} />
+                      <Input type="number" step="any" placeholder={`Enter height`} {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.value)} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -199,7 +201,7 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
                   <FormItem>
                     <FormLabel>Weight ({unit === 'metric' ? 'kg' : 'lbs'})</FormLabel>
                     <FormControl>
-                      <Input type="number" step="any" placeholder={`Enter weight`} {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} />
+                      <Input type="number" step="any" placeholder={`Enter weight`} {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.value)} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -212,7 +214,7 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Daily Activity Level</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select activity level" />
@@ -249,5 +251,3 @@ export function CalorieCalculator({ onCalculate }: CalorieCalculatorProps) {
   );
 }
 
-
-    

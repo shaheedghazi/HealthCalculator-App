@@ -51,14 +51,15 @@ export function WaterIntakeCalculator({ onCalculate }: WaterIntakeCalculatorProp
   const form = useForm<WaterIntakeFormData>({
     resolver: zodResolver(waterIntakeSchema),
     defaultValues: {
-      weight: undefined,
-      activityLevel: undefined,
+      weight: '', // Initialize with empty string
+      activityLevel: undefined, // Keep select undefined
       unit: 'metric',
     },
   });
 
   const onSubmit = (data: WaterIntakeFormData) => {
-    let { weight, activityLevel } = data;
+    let weight = data.weight as number; // Zod ensures number if valid
+    const activityLevel = data.activityLevel!; // Required by schema
     const currentUnit = data.unit;
     let baseIntake: number;
     let calculatedUnit: string;
@@ -102,7 +103,7 @@ export function WaterIntakeCalculator({ onCalculate }: WaterIntakeCalculatorProp
     // Reset weight field
     form.reset({
       ...form.getValues(), // Keep activity level
-      weight: undefined,
+      weight: '',
       unit: value
     });
     setResult(null);
@@ -152,7 +153,7 @@ export function WaterIntakeCalculator({ onCalculate }: WaterIntakeCalculatorProp
                 <FormItem>
                   <FormLabel>Weight ({unit === 'metric' ? 'kg' : 'lbs'})</FormLabel>
                   <FormControl>
-                    <Input type="number" step="any" placeholder={`Enter weight`} {...field} />
+                    <Input type="number" step="any" placeholder={`Enter weight`} {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.value)} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -165,7 +166,7 @@ export function WaterIntakeCalculator({ onCalculate }: WaterIntakeCalculatorProp
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Activity Level</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select activity level" />
@@ -203,5 +204,3 @@ export function WaterIntakeCalculator({ onCalculate }: WaterIntakeCalculatorProp
     </Card>
   );
 }
-
-    
